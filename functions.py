@@ -130,14 +130,12 @@ def get_info(url):
     return info
 
 
-def save_video_from_source_url(url, path, file_name, file_type=".mp4"):
+def download(url, path, file_name, file_type=".mp4"):
     """
     Makes an HTTPS GET request to url and saves the video into a file
-
-    Returns None
     """
     response = get(url)
-    path = os.path.join(path, file_name, file_type)
+    path = os.path.join(path, file_name + file_type)
 
     with open(path, "wb") as file:
         file.write(response.content)
