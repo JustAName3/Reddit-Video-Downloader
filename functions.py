@@ -38,7 +38,7 @@ def parse_packaged_media_redd_it(reddit_response: requests.Response):
     """
     Parses the given HTML response for the source of media on packaged-media.redd.it
 
-    Returns list with all video source URLs: str, last item = highest video quality
+    Returns list with all video source URLs: str, last item = highest video quality, returns None when source is not on packaged-media.redd.it.
     """
     splitted: list = reddit_response.text.split("\n")
     sources: list = None
@@ -50,7 +50,7 @@ def parse_packaged_media_redd_it(reddit_response: requests.Response):
 
     if sources is None:
         print("Source != packaged-media.redd.it")
-        raise TypeError
+        return None
 
     temp = sources.copy()
     for i in temp:
@@ -105,7 +105,17 @@ def get_info(url):
     """
     Saves useful information about a post from its .json
 
-    Returns dict
+    Returns dict {
+                "title":                        str
+                "is_reddit_media_domain":       bool
+                "domain":                       str
+                "hls_url":                      str
+                "height":                       int
+                "width":                        int
+                "has_audio":                    bool
+                "is_gif":                       bool
+                "base_url":                     str
+    }
     """
     response = get(url= url +".json")
 
