@@ -32,6 +32,7 @@ def get(url):
         return response
     else:
         print("Error", response.status_code)
+        print("URL: ", url)
 
 
 def parse_packaged_media_redd_it(reddit_response: requests.Response):
@@ -92,11 +93,11 @@ def parse_i_redd_it(reddit_response: requests.Response):
 
 def parse_v_redd_it(post_info: dict):
     """
-    Returns media source URL.
+    Returns tuple with media source URL.
     post_info: dict has to have the base url and width of a video --> output from get_info()
     """
     audio_path = f"{post_info["base_url"]}/HLS_AUDIO_128.aac"
-    video_path = f"{post_info["base_url"]}/HLS_{post_info["width"]}.ts"
+    video_path = f"{post_info["base_url"]}/HLS_{post_info["height"]}.ts"        #video_path = f"{post_info["base_url"]}/HLS_{post_info["height"]}.ts"
 
     return video_path, audio_path
 
