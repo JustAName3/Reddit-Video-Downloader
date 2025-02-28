@@ -123,14 +123,14 @@ def get_info(url):
     raw_info = json.loads(response.text)
 
     info: dict = {
-        "title":                    raw_info[0]["data"]["children"][0]["data"]["title"],
-        "is_reddit_media_domain":   raw_info[0]["data"]["children"][0]["data"]["is_reddit_media_domain"],
-        "domain":                   raw_info[0]["data"]["children"][0]["data"]["domain"],
-        "hls_url":                  raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["hls_url"],
-        "height":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["height"],
-        "width":                    raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["width"],
-        "has_audio":                raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["has_audio"],
-        "is_gif":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["is_gif"]
+        "title":                    raw_info[0]["data"]["children"][0]["data"].get("title"),
+        "is_reddit_media_domain":   raw_info[0]["data"]["children"][0]["data"].get("is_reddit_media_domain"),
+        "domain":                   raw_info[0]["data"]["children"][0]["data"].get("domain"),
+        "hls_url":                  raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("hls_url"),
+        "height":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("height"),
+        "width":                    raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("width"),
+        "has_audio":                raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("has_audio"),
+        "is_gif":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("is_gif")
     }
 
     base_url = info["hls_url"].split("/")
