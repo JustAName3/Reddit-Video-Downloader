@@ -1,4 +1,5 @@
 import tkinter as tk
+import exceptions
 import functions
 import ffmpeg_cmd
 import platform
@@ -34,6 +35,9 @@ class App(tk.Tk):
                                       command= self.check)
         self.check_button.grid(row= 1, column= 0, padx= 10)
 
+        self.status_label = tk.Label(master= self, text= "Status code: ")
+        self.status_label.grid(row= 1, column= 1, sticky= "w")
+
         self.title_label = tk.Label(master= self, text= "Title:")
         self.title_label.grid(row= 2, column= 0, pady= (20, 5), padx= 20)
 
@@ -67,29 +71,72 @@ class App(tk.Tk):
 
 
     def make_request(self, url):
-        if self.url_entry.get() == "":
-            print("No url")
-            return
-
+        """
+        Gets the HTML and info of url, saves them into self.response and self.info
+        """
         self.response = functions.get(url)
         self.info = functions.get_info(url)
 
 
+    def insert_path_title(self):
+        """
+        Inserts default path and title of Reddit post into entries if empty.
+        Gets title from self.info.
+        """
+        if self.title_entry.get() == "":
+            self.title_entry.insert(0, self.info["title"])
+
+        if self.path_entry.get() == "":
+            if op_sys == "Windows":
+                self.path_entry.insert(0, win_default_path)
+
+
+    def validate_url(self, url: str):
+        """
+        Checks if "reddit.com" is in URL.
+        Returns True if URL is valid, False if not.
+        """
+        if "reddit.com" in url:
+            return True
+        else:
+            return False
+
+
+    def preload(self):
+        """
+        Preloads response and info from URL.
+        Calls self.validate_url, self.make_request and self.insert_path_title, configures self.status_label.
+        Can raise exceptions.Error and exceptions.ServerError
+        """
+        url = self.url_entry.get()
+        if self.validate_url(url) is False:
+            raise exceptions.Error(description= "No Reddit URL", caller= "App.preload()")
+
+        self.make_request(url)
+        self.status_label.configure(text= f"Status code: {self.response.status_code}")
+
+        self.insert_path_title()
+
+        print("Finished preload")
+
+
     def check(self):
         """
-        Calls self.make_request and inserts title and path into entries.
+        Calls self.preload and handles the error. Used on self.check_button.
         """
-        if self.info is None or self.response is None:
-            self.make_request(self.url_entry.get())
+        try:
+            self.preload()
+        except exceptions.Error as err:
+            print(err)
+            return
+        except exceptions.ServerError as serr:
+            self.status_label.configure(text=f"Status code: {serr.code}")
+            print(serr)
+            return
 
-        self.title_entry.delete(0, "end")
-        self.title_entry.insert(0, self.info["title"])
 
-        if op_sys == "Windows":
-            self.path_entry.delete(0, "end")
-            self.path_entry.insert(0, win_default_path)
-
-        print("Check completed")
+    def check_path(self, path):
+        return os.path.exists(path)
 
 
     def parse(self):
@@ -111,58 +158,94 @@ class App(tk.Tk):
             return "i"
 
 
+    def del_temp(self):
+        """
+        Deletes the audio and video files in temp folder if the files exist.
+        """
+        temp_vid = os.path.join(os.getcwd(), "temp", "Vid.ts")
+        temp_aud = os.path.join(os.getcwd(), "temp", "Aud.aac")
+
+        if os.path.exists(temp_vid):
+            os.remove(temp_vid)
+
+        if os.path.exists(temp_aud):
+            os.remove(temp_aud)
+
+
     def download(self):
-
-        if self.info is None or self.response is None:
-            self.make_request(self.url_entry.get())
-
-        # Checks if either of the entries is empty
-        if self.url_entry.get() == "":
-            print("No URL given")
-            return
-        elif self.title_entry.get() == "":
-            print("No file name given")
-            return
-        elif self.path_entry.get() == "":
-            print("No path given")
-            return
-
-        if self.info["is_reddit_media_domain"] is False:
-            print("Media not hosted on Redit")
-            return
+        """
+        Main function to download videos. Calls preload it not called prior. Handles errors.
+        """
+        if self.response is None or self.info is None:
+            try:
+                self.preload()
+            except exceptions.Error as err:
+                print(err)
+                return
+            except exceptions.ServerError as serr:
+                self.status_label.configure(text= f"Status code: {serr.code}")
+                print(serr)
+                return
 
         title = self.title_entry.get()
         path = self.path_entry.get()
+
+        # Checks for empty entries and path validity
+        if title == "":
+            print("No title given")
+            return
+        if self.check_path(path) is False:
+            print("Invalid path")
+            return
+
+        if self.info["is_reddit_media_domain"] is False:
+            print("Media not hosted on Reddit")
+            return
 
         domain = self.parse()
         print(domain)
 
         if domain == "i":
-            functions.download(url= self.src,
-                               path= path,
-                               file_name= title,
-                               file_type= ".gif")
+            try:
+                functions.download(url= self.src,
+                                   path= path,
+                                   file_name= title,
+                                   file_type= ".gif")
+            except exceptions.ServerError as serr:
+                print(serr)
+                return
         elif domain == "p":
-            functions.download(url= self.src[-1],
-                               path= path,
-                               file_name= title)
+            try:
+                functions.download(url= self.src[-1],
+                                   path= path,
+                                   file_name= title)
+            except exceptions.ServerError as serr:
+                print(serr)
+                return
         elif domain == "v":
-            functions.download(url= self.src[0],
-                               path= os.getcwd(),
-                               file_name= "Vid",
-                               file_type= ".ts")
-            functions.download(url= self.src[-1],
-                               path= os.getcwd(),
-                               file_name= "Aud",
-                               file_type= ".aac")
+            try:
+                functions.download(url= self.src[0],
+                                   path= os.path.join(os.getcwd(), "temp"),
+                                   file_name= "Vid",
+                                   file_type= ".ts")
+                functions.download(url= self.src[-1],
+                                   path= os.path.join(os.getcwd(), "temp"),
+                                   file_name= "Aud",
+                                   file_type= ".aac")
+            except exceptions.ServerError as serr:
+                print(serr)
+                return
 
-            cmd_stdout = ffmpeg_cmd.merge_av(video= "Vid.ts",
-                                             audio= "Aud.aac",
-                                             output_name= title,
-                                             path= path)
+            try:
+                cmd_stdout = ffmpeg_cmd.merge_av(video= "Vid.ts",
+                                                 audio= "Aud.aac",
+                                                 output_name= title,
+                                                 path= path)
+            except exceptions.FFmpegError as ferr:
+                print(ferr)
+                return
 
-            os.remove("Aud.aac")
-            os.remove("Vid.ts")
+            self.del_temp()
 
         print("Downloaded video")
         self.clear()

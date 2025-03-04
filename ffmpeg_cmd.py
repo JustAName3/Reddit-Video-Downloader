@@ -1,5 +1,6 @@
 import subprocess
 import os
+import exceptions
 
 # To use merge_av() FFmpeg must be installed on your system.
 
@@ -17,10 +18,16 @@ def merge_av(video, audio, output_name: str, path):
         -path:              Path where .mp4 will be stored
 
     Returns subprocess.CompletedProcess
+    If returncode != 0: raises exceptions.FFmpegError
     """
     path = str(os.path.join(path, output_name))
     ffmpeg_cmd = raw_ffmpeg_cmd.format(video_file= video, audio_file= audio, path= path)
 
     cmd =subprocess.run(ffmpeg_cmd, capture_output= True, text= True)
+    if cmd.returncode != 0:
+        raise exceptions.FFmpegError(stderr= cmd.stderr,
+                                     return_code= cmd.returncode,
+                                     command= cmd.args,
+                                     completed_process= cmd)
 
     return cmd

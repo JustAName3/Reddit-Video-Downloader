@@ -1,3 +1,4 @@
+import exceptions
 import requests
 import random
 import json
@@ -22,7 +23,9 @@ userAgents = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101
 
 def get(url):
     """
-    Sends an HTTPS GET request to given url, returns response when status code is 200
+    Sends an HTTPS GET request to given url.
+
+    Returns requests.Response obj if status_code is 200. If not 200: raises exceptions.ServerError
     """
     params = {"User-Agent": random.choice(userAgents)}
     response = requests.get(url, headers=params)
@@ -31,8 +34,7 @@ def get(url):
         print("Data received")
         return response
     else:
-        print("Error", response.status_code)
-        print("URL: ", url)
+        raise exceptions.ServerError(code= response.status_code, url= url, response= response)
 
 
 def parse_packaged_media_redd_it(reddit_response: requests.Response):
@@ -117,6 +119,7 @@ def get_info(url):
                 "is_gif":                       bool
                 "base_url":                     str
     }
+    If Value is None, key was not found.
     """
     response = get(url= url +".json")
 
@@ -143,7 +146,8 @@ def get_info(url):
 
 def download(url, path, file_name, file_type=".mp4"):
     """
-    Makes an HTTPS GET request to url and saves the video into a file
+    Makes an HTTPS GET request to url and saves the video into a file.
+    get() can raise exceptions.ServerError.
     """
     response = get(url)
     path = os.path.join(path, file_name + file_type)
