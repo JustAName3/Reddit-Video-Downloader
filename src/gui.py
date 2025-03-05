@@ -1,10 +1,14 @@
+import log
+
 import tkinter as tk
+import ffmpeg_cmd
 import exceptions
 import functions
-import ffmpeg_cmd
 import platform
+import logging
 import os
 
+logger = logging.getLogger("main.gui")
 
 op_sys = platform.system()
 win_default_path = os.path.join("C:", r"\Users", os.getlogin(), "Videos")
@@ -69,6 +73,8 @@ class App(tk.Tk):
         self.response = None
         self.src = None
 
+        logger.info("Cleared data")
+
 
     def make_request(self, url):
         """
@@ -117,7 +123,7 @@ class App(tk.Tk):
 
         self.insert_path_title()
 
-        print("Finished preload")
+        logger.info("Finished preload")
 
 
     def check(self):
@@ -126,12 +132,15 @@ class App(tk.Tk):
         """
         try:
             self.preload()
-        except exceptions.Error as err:
-            print(err)
+        except exceptions.Error:
+            logger.exception("")
             return
         except exceptions.ServerError as serr:
+            logger.exception("")
             self.status_label.configure(text=f"Status code: {serr.code}")
-            print(serr)
+            return
+        except Exception:
+            logger.exception("")
             return
 
 
@@ -162,14 +171,17 @@ class App(tk.Tk):
         """
         Deletes the audio and video files in temp folder if the files exist.
         """
-        temp_vid = os.path.join(os.getcwd(), "temp", "Vid.ts")
-        temp_aud = os.path.join(os.getcwd(), "temp", "Aud.aac")
+        temp_path = os.path.join(os.path.split(os.getcwd())[0], "temp")
+        temp_vid = os.path.join(temp_path, "Vid.ts")
+        temp_aud = os.path.join(temp_path, "Aud.aac")
 
         if os.path.exists(temp_vid):
             os.remove(temp_vid)
 
         if os.path.exists(temp_aud):
             os.remove(temp_aud)
+
+        logger.info("Deleted temporary files")
 
 
     def download(self):
@@ -179,12 +191,15 @@ class App(tk.Tk):
         if self.response is None or self.info is None:
             try:
                 self.preload()
-            except exceptions.Error as err:
-                print(err)
+            except exceptions.Error:
+                logger.exception("")
                 return
             except exceptions.ServerError as serr:
                 self.status_label.configure(text= f"Status code: {serr.code}")
-                print(serr)
+                logger.exception("")
+                return
+            except Exception:
+                logger.exception("")
                 return
 
         title = self.title_entry.get()
@@ -192,18 +207,18 @@ class App(tk.Tk):
 
         # Checks for empty entries and path validity
         if title == "":
-            print("No title given")
+            logger.warning("No title given")
             return
         if self.check_path(path) is False:
-            print("Invalid path")
+            logger.warning("Path is invalid")
             return
 
         if self.info["is_reddit_media_domain"] is False:
-            print("Media not hosted on Reddit")
+            logger.warning("Media is not hosted on Reddit")
             return
 
         domain = self.parse()
-        print(domain)
+        logger.debug(f"domain: {domain}")
 
         if domain == "i":
             try:
@@ -211,43 +226,47 @@ class App(tk.Tk):
                                    path= path,
                                    file_name= title,
                                    file_type= ".gif")
-            except exceptions.ServerError as serr:
-                print(serr)
+            except exceptions.ServerError:
+                logger.exception("")
                 return
         elif domain == "p":
             try:
                 functions.download(url= self.src[-1],
                                    path= path,
                                    file_name= title)
-            except exceptions.ServerError as serr:
-                print(serr)
+            except exceptions.ServerError:
+                logger.exception("")
                 return
         elif domain == "v":
+            temp_path = os.path.join(os.path.split(os.getcwd())[0], "temp")
+
             try:
                 functions.download(url= self.src[0],
-                                   path= os.path.join(os.getcwd(), "temp"),
+                                   path= temp_path,
                                    file_name= "Vid",
                                    file_type= ".ts")
                 functions.download(url= self.src[-1],
-                                   path= os.path.join(os.getcwd(), "temp"),
+                                   path= temp_path,
                                    file_name= "Aud",
                                    file_type= ".aac")
-            except exceptions.ServerError as serr:
-                print(serr)
+            except exceptions.ServerError:
+                logger.exception("")
                 return
 
             try:
-                cmd_stdout = ffmpeg_cmd.merge_av(video= "Vid.ts",
-                                                 audio= "Aud.aac",
+                logger.info("calling ffmpeg_cmd.merge_av")
+                cmd_stdout = ffmpeg_cmd.merge_av(video= os.path.join(temp_path, "Vid.ts"),
+                                                 audio= os.path.join(temp_path, "Aud.aac"),
                                                  output_name= title,
                                                  path= path)
-            except exceptions.FFmpegError as ferr:
-                print(ferr)
+            except exceptions.FFmpegError:
+                logger.exception("")
                 return
+            finally:
+                self.del_temp()
 
-            self.del_temp()
 
-        print("Downloaded video")
+        logger.info("Downloaded video")
         self.clear()
 
 

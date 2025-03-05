@@ -1,10 +1,10 @@
 import subprocess
-import os
 import exceptions
+import os
 
 # To use merge_av() FFmpeg must be installed on your system.
 
-raw_ffmpeg_cmd = 'ffmpeg -i {video_file} -i {audio_file} -c copy "{path}.mp4" -hide_banner'     # This command will be used to merge audio and video into mp4 container
+raw_ffmpeg_cmd = 'ffmpeg -i "{video_file}" -i "{audio_file}" -c copy "{path}.mp4" -hide_banner'     # This command will be used to merge audio and video into mp4 container
 
 
 def merge_av(video, audio, output_name: str, path):

@@ -1,8 +1,11 @@
 import exceptions
 import requests
+import logging
 import random
 import json
 import os
+
+logger = logging.getLogger("main.functions")
 
 # Random user agents --> inspired by https://github.com/elmoiv/redvid/blob/master/redvid/requestmaker.py
 userAgents = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
@@ -30,10 +33,12 @@ def get(url):
     params = {"User-Agent": random.choice(userAgents)}
     response = requests.get(url, headers=params)
 
+
     if response.status_code == 200:
-        print("Data received")
+        logger.info(f"Data Received: {url}")
         return response
     else:
+        logger.warning(f"Status code is not 200, code: {response.status_code}")
         raise exceptions.ServerError(code= response.status_code, url= url, response= response)
 
 
@@ -52,7 +57,7 @@ def parse_packaged_media_redd_it(reddit_response: requests.Response):
             break
 
     if sources is None:
-        print("Source != packaged-media.redd.it")
+        logger.warning("Video source != packaged-media.redd.it")
         return None
 
     temp = sources.copy()
@@ -66,7 +71,8 @@ def parse_packaged_media_redd_it(reddit_response: requests.Response):
         sources[index - 1] = sources[index - 1].replace("&quot;,&quot;dimensions&quot;:", "")
         sources[index - 1] = sources[index - 1].replace("amp;", "")
 
-    print("Extracted video sources")
+    logger.info("Extracted video sources")
+    logger.debug(f"{sources}")
     return sources
 
 
@@ -76,7 +82,7 @@ def parse_i_redd_it(reddit_response: requests.Response):
 
     Returns source URL: str
     """
-    source = reddit_response.text.split("\n")
+    source: str = reddit_response.text.split("\n")
 
     for line in source:
         if "content-href" in line:
@@ -89,7 +95,8 @@ def parse_i_redd_it(reddit_response: requests.Response):
             source = i
             break
 
-    print("Extracted video source")
+    logger.info("Extracted video source")
+    logger.debug(source)
     return source
 
 
@@ -101,6 +108,8 @@ def parse_v_redd_it(post_info: dict):
     audio_path = f"{post_info["base_url"]}/HLS_AUDIO_128.aac"
     video_path = f"{post_info["base_url"]}/HLS_{post_info["height"]}.ts"        #video_path = f"{post_info["base_url"]}/HLS_{post_info["height"]}.ts"
 
+    logger.info("Extracted video and audio sources")
+    logger.debug(f"Audio source: {audio_path}, video source: {video_path}")
     return video_path, audio_path
 
 
@@ -129,18 +138,27 @@ def get_info(url):
         "title":                    raw_info[0]["data"]["children"][0]["data"].get("title"),
         "is_reddit_media_domain":   raw_info[0]["data"]["children"][0]["data"].get("is_reddit_media_domain"),
         "domain":                   raw_info[0]["data"]["children"][0]["data"].get("domain"),
-        "hls_url":                  raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("hls_url"),
-        "height":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("height"),
-        "width":                    raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("width"),
-        "has_audio":                raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("has_audio"),
-        "is_gif":                   raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("is_gif")
     }
 
-    base_url = info["hls_url"].split("/")
-    del base_url[-1]
-    base_url = "/".join(base_url)
-    info["base_url"] = base_url
+    if info["domain"] != "i.redd.it":
 
+        expansion = {
+            "hls_url":      raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("hls_url"),
+            "height":       raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("height"),
+            "width":        raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("width"),
+            "has_audio":    raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("has_audio"),
+            "is_gif":       raw_info[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"].get("is_gif")
+        }
+
+        info.update(expansion)
+
+        base_url = info["hls_url"].split("/")
+        del base_url[-1]
+        base_url = "/".join(base_url)
+        info["base_url"] = base_url
+
+    logger.info("Made info dict")
+    logger.debug(f"{info}")
     return info
 
 
@@ -149,9 +167,11 @@ def download(url, path, file_name, file_type=".mp4"):
     Makes an HTTPS GET request to url and saves the video into a file.
     get() can raise exceptions.ServerError.
     """
+    logger.debug(f"Downloading ({url})")
     response = get(url)
     path = os.path.join(path, file_name + file_type)
 
     with open(path, "wb") as file:
         file.write(response.content)
 
+    logger.info(f"Saved file: {path}")

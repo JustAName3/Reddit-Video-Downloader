@@ -2,3 +2,7 @@ venv
 test.py
 .idea
 TODO.txt
+temp/Vid.ts
+temp/Aud.aac
+logs/debug.log
+logs/info.log
