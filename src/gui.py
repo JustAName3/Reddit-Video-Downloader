@@ -13,6 +13,10 @@ logger = logging.getLogger("main.gui")
 op_sys = platform.system()
 win_default_path = os.path.join("C:", r"\Users", os.getlogin(), "Videos")
 
+temp_path = os.path.split(__file__)[0]
+temp_path = os.path.split(temp_path)[0]
+temp_path = os.path.join(temp_path, "temp")
+# I know, I know THIS ^ is really, reeeealy ugly, will be changed soon to use pathlib
 
 
 class App(tk.Tk):
@@ -25,7 +29,7 @@ class App(tk.Tk):
         self.title("Reddit Video Downloader")
         self.inputs: list = [] # Used for storing all input widgets and clearing them
         self.info: dict = None
-        self.response = None #requsests.Response object
+        self.response = None #requests.Response object
         self.src = None # Tuple, list or str, URL to video source
 
         self.url_label = tk.Label(master= self, text= "Reddit URL:")
@@ -171,7 +175,6 @@ class App(tk.Tk):
         """
         Deletes the audio and video files in temp folder if the files exist.
         """
-        temp_path = os.path.join(os.path.split(os.getcwd())[0], "temp")
         temp_vid = os.path.join(temp_path, "Vid.ts")
         temp_aud = os.path.join(temp_path, "Aud.aac")
 
@@ -238,8 +241,6 @@ class App(tk.Tk):
                 logger.exception("")
                 return
         elif domain == "v":
-            temp_path = os.path.join(os.path.split(os.getcwd())[0], "temp")
-
             try:
                 functions.download(url= self.src[0],
                                    path= temp_path,
@@ -259,6 +260,7 @@ class App(tk.Tk):
                                                  audio= os.path.join(temp_path, "Aud.aac"),
                                                  output_name= title,
                                                  path= path)
+                logger.info("Merged video and audio with FFmpeg")
             except exceptions.FFmpegError:
                 logger.exception("")
                 return

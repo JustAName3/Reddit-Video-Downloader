@@ -1,15 +1,19 @@
 import logging.config
-import os.path
+import os
 
-# Configures logging logs every import with date
+# Configures logging, logs every import with date
 # Has to be imported before anything gets logged
 
 stdout_level: str = "INFO"  # Sets level for stdout handler
 log_file_size: int = 100000 # Sets mayBytes for log  files --> 100kB
 backup_count: int = 1       # Sets backupCount for log files
 
-debug_path = os.path.join(os.path.split(os.getcwd())[0], "logs", "debug.log")
-info_path = os.path.join(os.path.split(os.getcwd())[0], "logs", "info.log")
+log_path = os.path.split(__file__)[0]
+log_path = os.path.split(log_path)[0]
+log_path = os.path.join(log_path, "logs")
+
+debug_path = os.path.join(log_path, "debug.log")
+info_path = os.path.join(log_path, "info.log")
 
 
 logger_config: dict = {

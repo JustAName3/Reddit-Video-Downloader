@@ -6,3 +6,5 @@ temp/Vid.ts
 temp/Aud.aac
 logs/debug.log
 logs/info.log
+src/__pycache__
+.vscode
