@@ -1,7 +1,6 @@
-import logging.config
 import pathlib
 
-# Configures logging, logs every import with date
+
 # Has to be imported before anything gets logged
 
 stdout_level: str = "INFO"  # Sets level for stdout handler
@@ -98,10 +97,3 @@ logger_config: dict = {
         }
     }
 }
-
-# This will go into the main.py file once Im finished.
-logging.config.dictConfig(config= logger_config)
-
-_logger = logging.getLogger("_startup")
-_logger.info("App started")
-

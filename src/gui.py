@@ -1,5 +1,3 @@
-import log
-
 import tkinter as tk
 import ffmpeg_cmd
 import exceptions
@@ -270,14 +268,3 @@ class App(tk.Tk):
 
         logger.info("Downloaded video")
         self.clear()
-
-
-
-
-# Will be deleted when main.py is made
-try:
-    app = App()
-
-    app.mainloop()
-except Exception:
-    logger.exception("")
