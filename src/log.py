@@ -1,5 +1,5 @@
 import logging.config
-import os
+import pathlib
 
 # Configures logging, logs every import with date
 # Has to be imported before anything gets logged
@@ -8,12 +8,10 @@ stdout_level: str = "INFO"  # Sets level for stdout handler
 log_file_size: int = 100000 # Sets mayBytes for log  files --> 100kB
 backup_count: int = 1       # Sets backupCount for log files
 
-log_path = os.path.split(__file__)[0]
-log_path = os.path.split(log_path)[0]
-log_path = os.path.join(log_path, "logs")
+log_path = pathlib.Path(__file__).parent.parent / "logs"
 
-debug_path = os.path.join(log_path, "debug.log")
-info_path = os.path.join(log_path, "info.log")
+debug_path = log_path / "debug.log"
+info_path = log_path / "info.log"
 
 
 logger_config: dict = {
@@ -40,7 +38,7 @@ logger_config: dict = {
 
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": info_path,
+            "filename": str(info_path),
             "formatter": "standard",
             "level": "INFO",
             "maxBytes": log_file_size,
@@ -50,7 +48,7 @@ logger_config: dict = {
         "debug_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "standard",
-            "filename": debug_path,
+            "filename": str(debug_path),
             "level": "DEBUG",
             "maxBytes": log_file_size,
             "backupCount": backup_count
@@ -60,7 +58,7 @@ logger_config: dict = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "date",
             "level": "DEBUG",
-            "filename": debug_path,
+            "filename": str(debug_path),
             "maxBytes": log_file_size,
             "backupCount": backup_count
         },
@@ -69,7 +67,7 @@ logger_config: dict = {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "date",
             "level": "DEBUG",
-            "filename": info_path,
+            "filename": str(info_path),
             "maxBytes": log_file_size,
             "backupCount": backup_count
         }
@@ -101,7 +99,7 @@ logger_config: dict = {
     }
 }
 
-
+# This will go into the main.py file once Im finished.
 logging.config.dictConfig(config= logger_config)
 
 _logger = logging.getLogger("_startup")

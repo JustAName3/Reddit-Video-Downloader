@@ -6,17 +6,15 @@ import exceptions
 import functions
 import platform
 import logging
+import pathlib
 import os
 
 logger = logging.getLogger("main.gui")
 
 op_sys = platform.system()
-win_default_path = os.path.join("C:", r"\Users", os.getlogin(), "Videos")
+win_default_path = pathlib.Path.home() / "Videos"
 
-temp_path = os.path.split(__file__)[0]
-temp_path = os.path.split(temp_path)[0]
-temp_path = os.path.join(temp_path, "temp")
-# I know, I know THIS ^ is really, reeeealy ugly, will be changed soon to use pathlib
+temp_path = pathlib.Path(__file__).parent.parent /"temp"
 
 
 class App(tk.Tk):
@@ -148,7 +146,7 @@ class App(tk.Tk):
             return
 
 
-    def check_path(self, path):
+    def check_path(self, path):         # <-- unnecessary, may be removed
         return os.path.exists(path)
 
 
@@ -175,8 +173,8 @@ class App(tk.Tk):
         """
         Deletes the audio and video files in temp folder if the files exist.
         """
-        temp_vid = os.path.join(temp_path, "Vid.ts")
-        temp_aud = os.path.join(temp_path, "Aud.aac")
+        temp_vid = temp_path / "Vid.ts"
+        temp_aud = temp_path / "Aud.aac"
 
         if os.path.exists(temp_vid):
             os.remove(temp_vid)
@@ -206,7 +204,7 @@ class App(tk.Tk):
                 return
 
         title = self.title_entry.get()
-        path = self.path_entry.get()
+        path: str = self.path_entry.get()
 
         # Checks for empty entries and path validity
         if title == "":
@@ -256,11 +254,13 @@ class App(tk.Tk):
 
             try:
                 logger.info("calling ffmpeg_cmd.merge_av")
-                cmd_stdout = ffmpeg_cmd.merge_av(video= os.path.join(temp_path, "Vid.ts"),
-                                                 audio= os.path.join(temp_path, "Aud.aac"),
+                cmd_stdout = ffmpeg_cmd.merge_av(video= str(temp_path / "Vid.ts"),
+                                                 audio= str(temp_path / "Aud.aac"),
                                                  output_name= title,
                                                  path= path)
+                
                 logger.info("Merged video and audio with FFmpeg")
+                logger.debug(f"FFmpeg args: {cmd_stdout.args}")
             except exceptions.FFmpegError:
                 logger.exception("")
                 return
@@ -274,7 +274,10 @@ class App(tk.Tk):
 
 
 
+# Will be deleted when main.py is made
+try:
+    app = App()
 
-app = App()
-
-app.mainloop()
+    app.mainloop()
+except Exception:
+    logger.exception("")
