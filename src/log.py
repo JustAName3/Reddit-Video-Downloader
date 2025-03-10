@@ -1,10 +1,11 @@
 import pathlib
-
+import logging.config
 
 # Has to be imported before anything gets logged
+# Configures the loggers on import
 
 stdout_level: str = "INFO"  # Sets level for stdout handler
-log_file_size: int = 100000 # Sets mayBytes for log  files --> 100kB
+log_file_size: int = 100000 # Sets maxBytes for log  files --> 100kB
 backup_count: int = 1       # Sets backupCount for log files
 
 log_path = pathlib.Path(__file__).parent.parent / "logs"
@@ -19,7 +20,7 @@ logger_config: dict = {
 
     "formatters": {
         "standard": {
-            "format": "%(levelname)s|%(name)s|Function: %(funcName)s| %(message)s"
+            "format": "%(levelname)s|%(name)s|Function: %(funcName)s()| %(message)s"
         },
 
         "date": {
@@ -97,3 +98,6 @@ logger_config: dict = {
         }
     }
 }
+
+# Configures the loggers on import
+logging.config.dictConfig(config= logger_config)

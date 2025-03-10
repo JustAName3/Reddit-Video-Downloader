@@ -33,6 +33,7 @@ def get(url):
     params = {"User-Agent": random.choice(userAgents)}
     response = requests.get(url, headers=params)
 
+    logger.debug(f"response header: {response.headers}")
 
     if response.status_code == 200:
         logger.info(f"Data Received: {url}")
