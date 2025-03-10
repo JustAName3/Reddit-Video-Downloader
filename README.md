@@ -20,7 +20,7 @@ If you install the requirements in a venv you need to add a shebang pointing to 
 
 ## GUI
 
-![Image not found](gui.png)
+![Image not found](gui.PNG)
 
 1. Enter URL to Reddit post here.
 2. If you press the "check" button the information will be preloaded. This is optional. 
