@@ -2,12 +2,12 @@
 
 set batch_file_location=%~dp0
 
-if exist .venv\ (
+if exist "%batch_file_location%.venv\" (
     echo Using .venv
-    "%batch_file_location%.venv\Scripts\python.exe" src\cli.py %*
-) else if exist venv (
+    "%batch_file_location%.venv\Scripts\python.exe" %batch_file_location%src\cli.py %*
+) else if exist "%batch_file_location%venv\" (
     echo Using venv
-    "%batch_file_location%.venv\Scripts\python.exe" src\cli.py %*
+    "%batch_file_location%.venv\Scripts\python.exe" %batch_file_location%src\cli.py %*
 ) else (
-    python src\cli.py %*
+    python "%batch_file_location%src\cli.py %*"
 )
