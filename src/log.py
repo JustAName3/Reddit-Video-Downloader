@@ -5,7 +5,7 @@ import logging.config
 # Configures the loggers on import
 
 stdout_level: str = "INFO"  # Sets level for stdout handler
-log_file_size: int = 100000 # Sets maxBytes for log  files --> 100kB
+log_file_size: int = 1_000_000 # Sets maxBytes for log  files --> 1mB
 backup_count: int = 1       # Sets backupCount for log files
 
 log_path = pathlib.Path(__file__).parent.parent / "logs"
@@ -95,6 +95,12 @@ logger_config: dict = {
             "propagate": False,
             "formatter": ["date"],
             "handlers": ["_df", "_f"]
+        },
+
+        "cli": {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["stdout", "file", "debug_file"]
         }
     }
 }

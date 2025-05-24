@@ -185,7 +185,7 @@ class App(tk.Tk):
 
     def download(self):
         """
-        Main function to download videos. Calls preload it not called prior. Handles errors.
+        Main function to download videos. Calls preload if not called prior. Handles errors.
         """
         if self.response is None or self.info is None:
             try:

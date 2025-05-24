@@ -7,21 +7,8 @@ import os
 
 logger = logging.getLogger("main.functions")
 
-# Random user agents --> inspired by https://github.com/elmoiv/redvid/blob/master/redvid/requestmaker.py
-userAgents = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
-              "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0",
-              "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0",
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.62",
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.71",
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
-              "Mozilla/5.0 (Windows; Windows NT 10.4; Win64; x64) AppleWebKit/601.6 (KHTML, like Gecko) Chrome/50.0.2268.286 Safari/603.4 Edge/16.29908",
-              "Mozilla/5.0 (Windows; Windows NT 10.3; Win64; x64; en-US) Gecko/20100101 Firefox/57.1",
-              "Mozilla/5.0 (Linux; U; Android 7.1; Pixel XL Build/NRD90M) AppleWebKit/600.13 (KHTML, like Gecko)  Chrome/47.0.1115.223 Mobile Safari/602.5",
-              "Mozilla/5.0 (Linux i543 ; en-US) AppleWebKit/600.22 (KHTML, like Gecko) Chrome/54.0.1542.183 Safari/601",
-              "Mozilla/5.0 (iPhone; CPU iPhone OS 7_6_2; like Mac OS X) AppleWebKit/533.49 (KHTML, like Gecko)  Chrome/52.0.1782.144 Mobile Safari/533.4"]
+
+userAgents = ["Reddit Video Downloader (https://github.com/JustAName3/Reddit-Video-Downloader)"]
 
 
 def get(url):
@@ -43,7 +30,7 @@ def get(url):
         raise exceptions.ServerError(code= response.status_code, url= url, response= response)
 
 
-def parse_packaged_media_redd_it(reddit_response: requests.Response):
+def parse_packaged_media_redd_it(reddit_response: requests.Response) -> list[str]:
     """
     Parses the given HTML response for the source of media on packaged-media.redd.it
 
@@ -77,7 +64,7 @@ def parse_packaged_media_redd_it(reddit_response: requests.Response):
     return sources
 
 
-def parse_i_redd_it(reddit_response: requests.Response):
+def parse_i_redd_it(reddit_response: requests.Response) -> str:
     """
     Parses the given HTML response for the source of media on i.redd.it, usually gifs
 
@@ -101,7 +88,7 @@ def parse_i_redd_it(reddit_response: requests.Response):
     return source
 
 
-def parse_v_redd_it(post_info: dict):
+def parse_v_redd_it(post_info: dict) -> tuple[str, str]:
     """
     Returns tuple with media source URL.
     post_info: dict has to have the base url and width of a video --> output from get_info()
@@ -114,7 +101,7 @@ def parse_v_redd_it(post_info: dict):
     return video_path, audio_path
 
 
-def get_info(url):
+def get_info(url) -> dict:
     """
     Saves useful information about a post from its .json
 
